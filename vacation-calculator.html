@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vacation Time Calculator for Google Sheets</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .calculator {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fafafa;
+        }
+        .section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .input-group {
+            margin-bottom: 10px;
+        }
+        label {
+            display: inline-block;
+            width: 180px;
+            font-weight: bold;
+            color: #555;
+        }
+        select, input {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .result {
+            background-color: #e8f5e8;
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: #2d5a2d;
+        }
+        .formula-guide {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .formula {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-left: 4px solid #007acc;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Vacation Time Calculator - Google Sheets Layout</h1>
+    
+    <div class="calculator">
+        <div class="section">
+            <h3>Basic Information</h3>
+            <div class="input-group">
+                <label>Accrual Group:</label>
+                <select>
+                    <option>First 4 years (3.7 hrs/period)</option>
+                    <option>Begin 5th - 10th (5.24 hrs/period)</option>
+                    <option>Begin 11th (5.55 hrs/period)</option>
+                    <option>Begin 12th (5.85 hrs/period)</option>
+                    <option>Begin 13th (6.16 hrs/period)</option>
+                    <option>Begin 15th - 19th (6.78 hrs/period)</option>
+                    <option>Begin 20th (8.32 hrs/period)</option>
+                    <option>Begin 25th (9 hrs/period)</option>
+                    <option>Begin 30th (9.5 hrs/period)</option>
+                    <option>Sick leave (6 hrs/period)</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Current Balance:</label>
+                <input type="number" placeholder="Enter current vacation hours" step="0.01">
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>Future Date Calculation</h3>
+            <div class="input-group">
+                <label>Target Date:</label>
+                <input type="date">
+            </div>
+            <div class="result">
+                Projected Balance: [Will be calculated automatically]
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>Scheduled Vacations</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Vacation Date</th>
+                        <th>Hours to Use</th>
+                        <th>Balance Before</th>
+                        <th>Balance After</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="date"></td>
+                        <td><input type="number" step="0.01" placeholder="-40"></td>
+                        <td class="result">[Auto calculated]</td>
+                        <td class="result">[Auto calculated]</td>
+                    </tr>
+                    <tr>
+                        <td><input type="date"></td>
+                        <td><input type="number" step="0.01" placeholder="-16"></td>
+                        <td class="result">[Auto calculated]</td>
+                        <td class="result">[Auto calculated]</td>
+                    </tr>
+                    <tr>
+                        <td><input type="date"></td>
+                        <td><input type="number" step="0.01" placeholder="-8"></td>
+                        <td class="result">[Auto calculated]</td>
+                        <td class="result">[Auto calculated]</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h3>Running Total</h3>
+            <div class="result">
+                Current Running Balance: [Auto calculated based on all entries above]
+            </div>
+        </div>
+    </div>
+
+    <div class="formula-guide">
+        <h2>Google Sheets Setup Instructions</h2>
+        
+        <h3>1. Cell Layout (suggested positions):</h3>
+        <table>
+            <tr><th>Cell</th><th>Content</th><th>Type</th></tr>
+            <tr><td>B2</td><td>Accrual Group Dropdown</td><td>Data Validation List</td></tr>
+            <tr><td>B3</td><td>Current Balance</td><td>Number Input</td></tr>
+            <tr><td>B5</td><td>Target Date</td><td>Date Input</td></tr>
+            <tr><td>B6</td><td>Projected Balance</td><td>Formula</td></tr>
+            <tr><td>A9:D12</td><td>Vacation Schedule Table</td><td>Mixed</td></tr>
+            <tr><td>B14</td><td>Running Total</td><td>Formula</td></tr>
+        </table>
+
+        <h3>2. Data Validation for Accrual Group (Cell B2):</h3>
+        <div class="formula">
+First 4 years (3.7)
+Begin 5th - 10th (5.24)  
+Begin 11th (5.55)
+Begin 12th (5.85)
+Begin 13th (6.16)
+Begin 15th - 19th (6.78)
+Begin 20th (8.32)
+Begin 25th (9)
+Begin 30th (9.5)
+Sick leave (6)
+        </div>
+
+        <h3>3. Key Formulas:</h3>
+        
+        <p><strong>Accrual Rate Lookup (helper cell, e.g., B4):</strong></p>
+        <div class="formula">=IF(B2="First 4 years (3.7)",3.7,IF(B2="Begin 5th - 10th (5.24)",5.24,IF(B2="Begin 11th (5.55)",5.55,IF(B2="Begin 12th (5.85)",5.85,IF(B2="Begin 13th (6.16)",6.16,IF(B2="Begin 15th - 19th (6.78)",6.78,IF(B2="Begin 20th (8.32)",8.32,IF(B2="Begin 25th (9)",9,IF(B2="Begin 30th (9.5)",9.5,IF(B2="Sick leave (6)",6,0))))))))))</div>
+
+        <p><strong>Pay Periods Between Dates (helper cell, e.g., B7):</strong></p>
+        <div class="formula">=ROUNDDOWN((B5-TODAY())/14,0)</div>
+
+        <p><strong>Projected Balance (B6):</strong></p>
+        <div class="formula">=B3+(B4*B7)</div>
+
+        <p><strong>Balance Before Vacation (C10, C11, C12):</strong></p>
+        <div class="formula">=B3+(B4*ROUNDDOWN((A10-TODAY())/14,0))</div>
+
+        <p><strong>Balance After Vacation (D10, D11, D12):</strong></p>
+        <div class="formula">=C10+B10</div>
+
+        <p><strong>Running Total (B14):</strong></p>
+        <div class="formula">=B3+SUM(B10:B12)+(B4*ROUNDDOWN((MAX(A10:A12)-TODAY())/14,0))</div>
+
+        <h3>4. Setup Steps:</h3>
+        <ol>
+            <li>Create the layout as shown above</li>
+            <li>Set up data validation for cell B2 with the accrual group list</li>
+            <li>Add the accrual rate lookup formula in B4</li>
+            <li>Add the pay period calculation in B7</li>
+            <li>Add the projected balance formula in B6</li>
+            <li>Create the vacation table with date inputs in A10:A12 and hour inputs in B10:B12</li>
+            <li>Add balance calculation formulas in C10:C12 and D10:D12</li>
+            <li>Add the running total formula in B14</li>
+        </ol>
+
+        <p><strong>Note:</strong> These formulas assume bi-weekly pay periods (14 days) and calculate from TODAY(). Adjust the pay period interval if needed.</p>
+    </div>
+</body>
+</html>
