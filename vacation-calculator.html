@@ -194,7 +194,12 @@
         <div class="section">
             <h3>📊 Basic Information</h3>
             <div class="input-group">
-                <label for="accrualGroup">Accrual Group:</label>
+                <label for="hireDate">Hire Date:</label>
+                <input type="date" id="hireDate" onchange="calculateAccrualGroup()">
+                <small id="yearsOfService" style="color: #666; font-size: 0.8rem; margin-top: 5px; display: block;"></small>
+            </div>
+            <div class="input-group">
+                <label for="accrualGroup">Vacation Accrual Group:</label>
                 <select id="accrualGroup" onchange="calculateAll()">
                     <option value="3.7">First 4 years (3.7 hrs/period)</option>
                     <option value="5.24">Begin 5th - 10th (5.24 hrs/period)</option>
@@ -205,20 +210,38 @@
                     <option value="8.32">Begin 20th (8.32 hrs/period)</option>
                     <option value="9">Begin 25th (9 hrs/period)</option>
                     <option value="9.5">Begin 30th (9.5 hrs/period)</option>
-                    <option value="6">Sick leave (6 hrs/period)</option>
                 </select>
             </div>
-            <div class="input-group">
-                <label for="currentBalance">Current Balance (hours):</label>
-                <input type="number" id="currentBalance" placeholder="Enter current vacation hours" step="0.01" onchange="calculateAll()" oninput="calculateAll()">
+        </div>
+
+        <div class="section">
+            <h3>⏰ Time Off Balances</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <div class="input-group">
+                    <label for="currentBalance">💼 Vacation Balance:</label>
+                    <input type="number" id="currentBalance" placeholder="Current vacation hours" step="0.01" onchange="calculateAll()" oninput="calculateAll()">
+                </div>
+                <div class="input-group">
+                    <label for="compTime">⚡ Comp Time:</label>
+                    <input type="number" id="compTime" placeholder="Comp time hours" step="0.01" onchange="calculateAll()" oninput="calculateAll()">
+                </div>
+                <div class="input-group">
+                    <label for="floatingHoliday">🎉 Floating Holiday:</label>
+                    <input type="number" id="floatingHoliday" placeholder="Floating holiday hours" step="0.01" onchange="calculateAll()" oninput="calculateAll()">
+                    <small id="floatingHolidayInfo" style="color: #2d5a2d; font-size: 0.8rem; margin-top: 3px; display: block;"></small>
+                </div>
+                <div class="input-group">
+                    <label for="sickTime">🏥 Sick Time Balance:</label>
+                    <input type="number" id="sickTime" placeholder="Current sick time hours" step="0.01" onchange="calculateAll()" oninput="calculateAll()">
+                    <small style="color: #666; font-size: 0.8rem; margin-top: 3px;">Sick time accrues at 6 hrs/period</small>
+                </div>
             </div>
-            <div class="input-group">
-                <label for="compTime">Comp Time (hours):</label>
-                <input type="number" id="compTime" placeholder="Enter comp time hours" step="0.01" onchange="calculateAll()" oninput="calculateAll()">
-            </div>
-            <div class="input-group">
-                <label for="floatingHoliday">Floating Holiday (hours):</label>
-                <input type="number" id="floatingHoliday" placeholder="Enter floating holiday hours" step="0.01" onchange="calculateAll()" oninput="calculateAll()">
+            <div id="paydayCalibration" style="display: none; margin-top: 15px; padding: 15px; background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px;">
+                <div style="font-weight: bold; color: #856404; margin-bottom: 10px;">🔧 Payday Schedule Calibration</div>
+                <div style="color: #856404; font-size: 0.9rem; margin-bottom: 10px;">It looks like your payday schedule might need updating. When was your most recent payday?</div>
+                <input type="date" id="newReferencePayday" style="margin-right: 10px;">
+                <button onclick="updatePaydayReference()" style="background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">Update Schedule</button>
+                <button onclick="dismissCalibration()" style="background: #6c757d; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; margin-left: 5px;">Dismiss</button>
             </div>
         </div>
 
@@ -226,7 +249,8 @@
             <h3>📅 Future Date Calculation</h3>
             <div class="input-group">
                 <label for="targetDate">Target Date:</label>
-                <input type="date" id="targetDate" onchange="calculateAll()">
+                <input type="date" id="targetDate" onchange="calculateAll(); updateDateHelpers()">
+                <small id="targetDateHelper" style="color: #666; font-size: 0.8rem; margin-top: 5px;"></small>
             </div>
             <div class="result" id="projectedBalance">
                 Enter information above to see projected balance
@@ -234,7 +258,20 @@
         </div>
 
         <div class="section">
+            <h3>🔍 Payday Calculator</h3>
+            <div class="input-group">
+                <label for="checkDate">Check Any Date:</label>
+                <input type="date" id="checkDate" onchange="checkPaydayStatus()">
+                <div id="paydayStatus" style="color: #666; font-size: 0.9rem; margin-top: 8px; line-height: 1.4;"></div>
+            </div>
+        </div>
+
+        <div class="section">
             <h3>🏝️ Scheduled Vacations</h3>
+            <div style="margin-bottom: 15px;">
+                <button onclick="addVacationRow()" style="background: linear-gradient(145deg, #48bb78, #38a169); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; margin-right: 10px;">+ Add Vacation</button>
+                <button onclick="removeLastVacationRow()" style="background: linear-gradient(145deg, #fc8181, #e53e3e); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer;">- Remove Last</button>
+            </div>
             <div class="vacation-table">
                 <table>
                     <thead>
@@ -246,27 +283,16 @@
                             <th>Action</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="vacationTableBody">
                         <tr>
-                            <td><input type="date" onchange="calculateAll()"></td>
+                            <td><input type="date" onchange="calculateAll(); updateVacationHelper(this, 0)"></td>
                             <td><input type="number" step="0.01" placeholder="-40" onchange="calculateAll()" oninput="calculateAll()"></td>
                             <td class="balance-cell" id="before1">-</td>
                             <td class="balance-cell" id="after1">-</td>
                             <td><button class="clear-btn" onclick="clearRow(0)">Clear</button></td>
                         </tr>
                         <tr>
-                            <td><input type="date" onchange="calculateAll()"></td>
-                            <td><input type="number" step="0.01" placeholder="-16" onchange="calculateAll()" oninput="calculateAll()"></td>
-                            <td class="balance-cell" id="before2">-</td>
-                            <td class="balance-cell" id="after2">-</td>
-                            <td><button class="clear-btn" onclick="clearRow(1)">Clear</button></td>
-                        </tr>
-                        <tr>
-                            <td><input type="date" onchange="calculateAll()"></td>
-                            <td><input type="number" step="0.01" placeholder="-8" onchange="calculateAll()" oninput="calculateAll()"></td>
-                            <td class="balance-cell" id="before3">-</td>
-                            <td class="balance-cell" id="after3">-</td>
-                            <td><button class="clear-btn" onclick="clearRow(2)">Clear</button></td>
+                            <td colspan="5"><small id="vacationHelper1" style="color: #666; font-size: 0.8rem;"></small></td>
                         </tr>
                     </tbody>
                 </table>
@@ -279,14 +305,489 @@
                 Enter information above to calculate
             </div>
         </div>
+
+        <div class="section">
+            <h3>📅 Payday Reference</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; font-size: 0.9rem;">
+                <div id="paydayList"></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>💰 3-Paycheck Months</h3>
+            <div id="threePaycheckMonths" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; font-size: 0.9rem;"></div>
+        </div>
     </div>
 
     <script>
         // Load saved data on page load
         window.onload = function() {
             loadData();
+            checkPaydayAccuracy();
+            calculateFloatingHolidays();
+            generatePaydayList();
+            generateThreePaycheckMonths();
             calculateAll();
+            updateDateHelpers();
         };
+
+        let vacationRowCount = 1; // Start with 1 row
+
+        // Function to calculate floating holiday allocation
+        function calculateFloatingHolidays() {
+            const referencePayday = getReferencePayday();
+            const currentYear = new Date().getFullYear();
+            const floatingHolidayInfo = document.getElementById('floatingHolidayInfo');
+            
+            // Find first payday of the year
+            let firstPaydayOfYear = null;
+            for (let i = -26; i <= 26; i++) { // Check about a year back and forward
+                const payday = new Date(referencePayday);
+                payday.setDate(referencePayday.getDate() + (i * 14));
+                
+                if (payday.getFullYear() === currentYear) {
+                    if (!firstPaydayOfYear || payday < firstPaydayOfYear) {
+                        firstPaydayOfYear = payday;
+                    }
+                }
+            }
+            
+            // Find Juneteenth (June 19th) and the payday ON or first AFTER it
+            const juneteenth = new Date(currentYear, 5, 19); // June 19th
+            let paydayOnOrAfterJuneteenth = null;
+            
+            for (let i = 0; i <= 52; i++) {
+                const payday = new Date(referencePayday);
+                payday.setDate(referencePayday.getDate() + (i * 14));
+                
+                if (payday >= juneteenth && payday.getFullYear() === currentYear) {
+                    paydayOnOrAfterJuneteenth = payday;
+                    break;
+                }
+            }
+            
+            // Create info text
+            let infoText = '';
+            if (firstPaydayOfYear) {
+                const firstPaydayFormatted = firstPaydayOfYear.toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric' 
+                });
+                infoText += `40 hrs added ${firstPaydayFormatted} (first payday)`;
+            }
+            
+            if (paydayOnOrAfterJuneteenth) {
+                const juneteenthPaydayFormatted = paydayOnOrAfterJuneteenth.toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric' 
+                });
+                if (infoText) infoText += ' • ';
+                
+                // Check if it's exactly on Juneteenth or after
+                if (paydayOnOrAfterJuneteenth.getTime() === juneteenth.getTime()) {
+                    infoText += `8 hrs added ${juneteenthPaydayFormatted} (on Juneteenth)`;
+                } else {
+                    infoText += `8 hrs added ${juneteenthPaydayFormatted} (first payday on/after Juneteenth)`;
+                }
+            }
+            
+            floatingHolidayInfo.textContent = infoText || 'Floating holidays: 40 hrs (Jan) + 8 hrs (on/after Juneteenth)';
+        }
+
+        // Function to calculate accrual group based on hire date (vacation only now)
+        function calculateAccrualGroup() {
+            const hireDate = document.getElementById('hireDate').value;
+            const yearsElement = document.getElementById('yearsOfService');
+            const accrualSelect = document.getElementById('accrualGroup');
+            
+            if (!hireDate) {
+                yearsElement.textContent = '';
+                return;
+            }
+            
+            const hire = new Date(hireDate);
+            const currentYear = new Date().getFullYear();
+            const hireYear = hire.getFullYear();
+            
+            // Calculate years of service (starts at beginning of year)
+            const yearsOfService = currentYear - hireYear + 1; // +1 because you start year 1 immediately
+            
+            // Determine vacation accrual group (sick leave removed)
+            let accrualValue = '3.7'; // Default to first 4 years
+            let groupName = 'First 4 years';
+            
+            if (yearsOfService >= 30) {
+                accrualValue = '9.5';
+                groupName = 'Begin 30th';
+            } else if (yearsOfService >= 25) {
+                accrualValue = '9';
+                groupName = 'Begin 25th';
+            } else if (yearsOfService >= 20) {
+                accrualValue = '8.32';
+                groupName = 'Begin 20th';
+            } else if (yearsOfService >= 15) {
+                accrualValue = '6.78';
+                groupName = 'Begin 15th - 19th';
+            } else if (yearsOfService >= 13) {
+                accrualValue = '6.16';
+                groupName = 'Begin 13th';
+            } else if (yearsOfService >= 12) {
+                accrualValue = '5.85';
+                groupName = 'Begin 12th';
+            } else if (yearsOfService >= 11) {
+                accrualValue = '5.55';
+                groupName = 'Begin 11th';
+            } else if (yearsOfService >= 5) {
+                accrualValue = '5.24';
+                groupName = 'Begin 5th - 10th';
+            }
+            
+            // Update the display
+            yearsElement.textContent = `Year ${yearsOfService} of service → ${groupName} (${accrualValue} hrs/period vacation)`;
+            yearsElement.style.color = '#2d5a2d';
+            yearsElement.style.fontWeight = 'bold';
+            
+            // Auto-select the correct accrual group
+            accrualSelect.value = accrualValue;
+            
+            // Update floating holiday info
+            calculateFloatingHolidays();
+            
+            // Recalculate everything
+            calculateAll();
+        }
+
+        // Get the reference payday (either saved or default)
+        function getReferencePayday() {
+            const saved = localStorage.getItem('referencePayday');
+            if (saved) {
+                // Create date in local timezone to avoid UTC conversion issues
+                const parts = saved.split('-');
+                return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+            } else {
+                // Default: Friday August 22, 2025 - create in local timezone
+                return new Date(2025, 7, 22); // Month is 0-indexed, so 7 = August
+            }
+        }
+
+        // Get the accrual date (Sunday before payday)
+        function getAccrualDateFromPayday(paydayDate) {
+            const payday = new Date(paydayDate);
+            const accrualDate = new Date(payday);
+            accrualDate.setDate(payday.getDate() - 2); // Sunday is 2 days before Tuesday payday
+            return accrualDate;
+        }
+
+        // Get reference accrual date (Sunday before reference payday)
+        function getReferenceAccrualDate() {
+            const referencePayday = getReferencePayday();
+            return getAccrualDateFromPayday(referencePayday);
+        }
+
+        // Check if payday schedule seems accurate
+        function checkPaydayAccuracy() {
+            const referencePayday = getReferencePayday();
+            const today = new Date();
+            const daysSinceReference = Math.floor((today - referencePayday) / (1000 * 60 * 60 * 24));
+            
+            // If reference payday is more than 6 months old, suggest recalibration
+            if (daysSinceReference > 180) {
+                const calibrationDiv = document.getElementById('paydayCalibration');
+                if (calibrationDiv) {
+                    calibrationDiv.style.display = 'block';
+                    // Suggest a likely recent payday
+                    const periodsElapsed = Math.floor(daysSinceReference / 14);
+                    const suggestedPayday = new Date(referencePayday);
+                    suggestedPayday.setDate(suggestedPayday.getDate() + (periodsElapsed * 14));
+                    document.getElementById('newReferencePayday').value = suggestedPayday.toISOString().split('T')[0];
+                }
+            }
+        }
+
+        // Update payday reference
+        function updatePaydayReference() {
+            const newPayday = document.getElementById('newReferencePayday').value;
+            if (newPayday) {
+                localStorage.setItem('referencePayday', newPayday);
+                document.getElementById('paydayCalibration').style.display = 'none';
+                
+                // Refresh all payday-dependent displays
+                generatePaydayList();
+                generateThreePaycheckMonths();
+                calculateAll();
+                updateDateHelpers();
+                
+                // Show success message
+                alert('✅ Payday schedule updated successfully!');
+            }
+        }
+
+        // Dismiss calibration prompt
+        function dismissCalibration() {
+            document.getElementById('paydayCalibration').style.display = 'none';
+            // Remember that user dismissed it for this session
+            sessionStorage.setItem('calibrationDismissed', 'true');
+        }
+
+        // Function to add a new vacation row
+        function addVacationRow() {
+            vacationRowCount++;
+            const tableBody = document.getElementById('vacationTableBody');
+            
+            // Create data row
+            const dataRow = document.createElement('tr');
+            dataRow.innerHTML = `
+                <td><input type="date" onchange="calculateAll(); updateVacationHelper(this, ${vacationRowCount - 1})"></td>
+                <td><input type="number" step="0.01" placeholder="-${Math.floor(Math.random() * 40) + 8}" onchange="calculateAll()" oninput="calculateAll()"></td>
+                <td class="balance-cell" id="before${vacationRowCount}">-</td>
+                <td class="balance-cell" id="after${vacationRowCount}">-</td>
+                <td><button class="clear-btn" onclick="clearRow(${vacationRowCount - 1})">Clear</button></td>
+            `;
+            
+            // Create helper row
+            const helperRow = document.createElement('tr');
+            helperRow.innerHTML = `
+                <td colspan="5"><small id="vacationHelper${vacationRowCount}" style="color: #666; font-size: 0.8rem;"></small></td>
+            `;
+            
+            tableBody.appendChild(dataRow);
+            tableBody.appendChild(helperRow);
+            
+            calculateAll();
+        }
+
+        // Function to remove the last vacation row
+        function removeLastVacationRow() {
+            if (vacationRowCount <= 1) return; // Always keep at least 1 row
+            
+            const tableBody = document.getElementById('vacationTableBody');
+            
+            // Remove the last helper row
+            tableBody.removeChild(tableBody.lastElementChild);
+            // Remove the last data row
+            tableBody.removeChild(tableBody.lastElementChild);
+            
+            vacationRowCount--;
+            calculateAll();
+        }
+
+        // Function to check if a date is a payday
+        function isPayday(date) {
+            const referencePayday = getReferencePayday();
+            const checkDate = new Date(date);
+            const daysDiff = (checkDate - referencePayday) / (1000 * 60 * 60 * 24);
+            return daysDiff % 14 === 0 && daysDiff >= 0;
+        }
+
+        // Function to find previous payday before a given date
+        function getPreviousPayday(date) {
+            const referencePayday = getReferencePayday();
+            const checkDate = new Date(date);
+            const daysDiff = (checkDate - referencePayday) / (1000 * 60 * 60 * 24);
+            const periodsBack = Math.floor(daysDiff / 14);
+            const prevPayday = new Date(referencePayday);
+            prevPayday.setDate(prevPayday.getDate() + (periodsBack * 14));
+            return prevPayday;
+        }
+
+        // Function to find next payday after a given date
+        function getNextPayday(date) {
+            const referencePayday = getReferencePayday();
+            const checkDate = new Date(date);
+            const daysDiff = (checkDate - referencePayday) / (1000 * 60 * 60 * 24);
+            const periodsAhead = Math.ceil(daysDiff / 14);
+            const nextPayday = new Date(referencePayday);
+            nextPayday.setDate(nextPayday.getDate() + (periodsAhead * 14));
+            return nextPayday;
+        }
+
+        // Function to generate payday reference list
+        function generatePaydayList() {
+            const referencePayday = getReferencePayday();
+            const paydayList = document.getElementById('paydayList');
+            let html = '<div><strong>Upcoming Paydays:</strong></div>';
+            
+            // Show next 8 upcoming paydays
+            for (let i = 1; i <= 8; i++) {
+                const payday = new Date(referencePayday);
+                payday.setDate(referencePayday.getDate() + (i * 14));
+                
+                const formatted = payday.toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    year: 'numeric' 
+                });
+                html += `<div style="padding: 5px; background: #e6f3ff; border-radius: 4px; margin: 2px 0; font-weight: 500;">• ${formatted}</div>`;
+            }
+            
+            paydayList.innerHTML = html;
+        }
+
+        // Function to find months with 3 paychecks
+        function generateThreePaycheckMonths() {
+            const referencePayday = getReferencePayday();
+            const today = new Date();
+            const threePaycheckElement = document.getElementById('threePaycheckMonths');
+            const monthCounts = {};
+            const monthPaydays = {};
+            
+            // Generate paydays for the next 24 months to ensure we find future 3-paycheck months
+            for (let i = 0; i <= 52; i++) { // 52 pay periods = ~2 years
+                const payday = new Date(referencePayday);
+                payday.setDate(payday.getDate() + (i * 14));
+                
+                // Only look at future dates
+                if (payday >= today) {
+                    const monthKey = `${payday.getFullYear()}-${payday.getMonth()}`; // Year-Month key
+                    const monthName = payday.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                    
+                    if (!monthCounts[monthKey]) {
+                        monthCounts[monthKey] = 0;
+                        monthPaydays[monthKey] = {
+                            name: monthName,
+                            dates: []
+                        };
+                    }
+                    monthCounts[monthKey]++;
+                    monthPaydays[monthKey].dates.push(payday.getDate());
+                }
+            }
+            
+            // Find the next 2 months with 3 paychecks
+            const threePaycheckMonths = [];
+            const sortedMonthKeys = Object.keys(monthCounts).sort(); // Sort chronologically
+            
+            for (const monthKey of sortedMonthKeys) {
+                if (monthCounts[monthKey] === 3) {
+                    const dates = monthPaydays[monthKey].dates.sort((a, b) => a - b);
+                    threePaycheckMonths.push({
+                        month: monthPaydays[monthKey].name,
+                        dates: dates
+                    });
+                    
+                    // Only show next 2
+                    if (threePaycheckMonths.length === 2) {
+                        break;
+                    }
+                }
+            }
+            
+            // Display the results
+            if (threePaycheckMonths.length === 0) {
+                threePaycheckElement.innerHTML = '<div style="padding: 10px; background: #f8f9fa; border-radius: 6px; color: #666;">No upcoming months have 3 paychecks in the next 2 years.</div>';
+            } else {
+                let html = '';
+                threePaycheckMonths.forEach(monthInfo => {
+                    const datesStr = monthInfo.dates.join(', ');
+                    html += `<div style="padding: 10px; background: linear-gradient(145deg, #d4edda, #c3e6cb); border-radius: 8px; border: 2px solid #28a745; text-align: center;">
+                        <div style="font-weight: bold; color: #155724; font-size: 1rem;">${monthInfo.month}</div>
+                        <div style="font-size: 0.85rem; color: #155724; margin-top: 5px;">Paydays: ${datesStr}</div>
+                        <div style="font-size: 0.75rem; color: #28a745; margin-top: 3px;">💰 Bonus paycheck month!</div>
+                    </div>`;
+                });
+                threePaycheckElement.innerHTML = html;
+            }
+        }
+
+        // Function to check payday status for any date
+        function checkPaydayStatus() {
+            const checkDate = document.getElementById('checkDate').value;
+            const statusElement = document.getElementById('paydayStatus');
+            
+            if (!checkDate) {
+                statusElement.innerHTML = '';
+                return;
+            }
+            
+            if (isPayday(checkDate)) {
+                statusElement.innerHTML = '<div style="color: #2d5a2d; font-weight: bold; margin-bottom: 5px;">🎉 This is a payday!</div>';
+            } else {
+                const prevPayday = getPreviousPayday(checkDate);
+                const nextPayday = getNextPayday(checkDate);
+                
+                const prevFormatted = prevPayday.toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    year: 'numeric' 
+                });
+                const nextFormatted = nextPayday.toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    year: 'numeric' 
+                });
+                
+                const daysToPrev = Math.abs(Math.ceil((new Date(checkDate) - prevPayday) / (1000 * 60 * 60 * 24)));
+                const daysToNext = Math.ceil((nextPayday - new Date(checkDate)) / (1000 * 60 * 60 * 24));
+                
+                statusElement.innerHTML = `
+                    <div style="margin-bottom: 5px;"><strong>📅 Previous payday:</strong> ${prevFormatted} (${daysToPrev} days ago)</div>
+                    <div><strong>📅 Next payday:</strong> ${nextFormatted} (${daysToNext} days away)</div>
+                `;
+            }
+        }
+
+        // Function to update helper text for date inputs
+        function updateDateHelpers() {
+            const targetDate = document.getElementById('targetDate').value;
+            const targetHelper = document.getElementById('targetDateHelper');
+            
+            if (targetDate) {
+                if (isPayday(targetDate)) {
+                    targetHelper.textContent = '🎉 This is a payday!';
+                    targetHelper.style.color = '#2d5a2d';
+                    targetHelper.style.fontWeight = 'bold';
+                } else {
+                    const nextPayday = getNextPayday(targetDate);
+                    const formatted = nextPayday.toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric' 
+                    });
+                    const daysDiff = Math.ceil((nextPayday - new Date(targetDate)) / (1000 * 60 * 60 * 24));
+                    targetHelper.textContent = `Next payday: ${formatted} (${daysDiff} days away)`;
+                    targetHelper.style.color = '#666';
+                    targetHelper.style.fontWeight = 'normal';
+                }
+            } else {
+                targetHelper.textContent = '';
+            }
+        }
+
+        // Function to update vacation helper text
+        function updateVacationHelper(input, index) {
+            const helperElement = document.getElementById(`vacationHelper${index + 1}`);
+            const date = input.value;
+            
+            if (date) {
+                if (isPayday(date)) {
+                    helperElement.textContent = '🎉 This vacation is on a payday!';
+                    helperElement.style.color = '#2d5a2d';
+                    helperElement.style.fontWeight = 'bold';
+                } else {
+                    const nextPayday = getNextPayday(date);
+                    const formatted = nextPayday.toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric' 
+                    });
+                    const daysDiff = Math.ceil((nextPayday - new Date(date)) / (1000 * 60 * 60 * 24));
+                    
+                    // Check if vacation is near accrual date (Sunday before payday)
+                    const accrualDate = getAccrualDateFromPayday(nextPayday);
+                    const daysToAccrual = Math.ceil((accrualDate - new Date(date)) / (1000 * 60 * 60 * 24));
+                    
+                    if (Math.abs(daysToAccrual) <= 1) {
+                        helperElement.textContent = `💰 Vacation near accrual date! Next payday: ${formatted}`;
+                        helperElement.style.color = '#2d5a2d';
+                        helperElement.style.fontWeight = 'bold';
+                    } else {
+                        helperElement.textContent = `Next payday after vacation: ${formatted} (${daysDiff} days later)`;
+                        helperElement.style.color = '#666';
+                        helperElement.style.fontWeight = 'normal';
+                    }
+                }
+            } else {
+                helperElement.textContent = '';
+            }
+        }
 
         function calculateAll() {
             const accrualRate = parseFloat(document.getElementById('accrualGroup').value);
@@ -334,7 +835,7 @@
             }
 
             // Calculate vacation balances
-            const vacationRows = document.querySelectorAll('tbody tr');
+            const vacationRows = document.querySelectorAll('#vacationTableBody tr:nth-child(odd)'); // Only get data rows, not helper rows
             
             // Get all vacation entries and sort by date
             let vacations = [];
@@ -374,18 +875,12 @@
                     }
                     cumulativeBalance = totalBalance + accruedHours;
                 } else {
-                    // Subsequent vacations - calculate from previous vacation date
+                    // Subsequent vacations - calculate from previous vacation date using accrual schedule
                     const prevVacation = vacations[vacIndex - 1];
                     const daysBetween = (vacation.date - prevVacation.date) / (1000 * 60 * 60 * 24);
-                    const periodsBetween = Math.floor(Math.abs(daysBetween) / 14);
-                    
-                    if (daysBetween >= 0) {
-                        accruedHours = periodsBetween * accrualRate;
-                        cumulativeBalance += accruedHours;
-                    } else {
-                        accruedHours = -(periodsBetween * accrualRate);
-                        cumulativeBalance += accruedHours;
-                    }
+                    const periodsBetween = Math.floor(daysBetween / 14);
+                    accruedHours = periodsBetween * accrualRate;
+                    cumulativeBalance += accruedHours;
                 }
                 
                 const balanceAfter = cumulativeBalance + vacation.hours; // hours should be negative for usage
@@ -442,23 +937,30 @@
         }
 
         function clearRow(rowIndex) {
-            const row = document.querySelectorAll('tbody tr')[rowIndex];
-            row.querySelector('input[type="date"]').value = '';
-            row.querySelector('input[type="number"]').value = '';
-            calculateAll();
+            const rows = document.querySelectorAll('#vacationTableBody tr:nth-child(odd)'); // Get data rows only
+            if (rows[rowIndex]) {
+                const row = rows[rowIndex];
+                row.querySelector('input[type="date"]').value = '';
+                row.querySelector('input[type="number"]').value = '';
+                document.getElementById(`vacationHelper${rowIndex + 1}`).textContent = '';
+                calculateAll();
+            }
         }
 
         function saveData() {
             const data = {
+                hireDate: document.getElementById('hireDate').value,
                 accrualGroup: document.getElementById('accrualGroup').value,
                 currentBalance: document.getElementById('currentBalance').value,
                 compTime: document.getElementById('compTime').value,
                 floatingHoliday: document.getElementById('floatingHoliday').value,
+                sickTime: document.getElementById('sickTime').value,
                 targetDate: document.getElementById('targetDate').value,
+                vacationRowCount: vacationRowCount,
                 vacations: []
             };
             
-            document.querySelectorAll('tbody tr').forEach(row => {
+            document.querySelectorAll('#vacationTableBody tr:nth-child(odd)').forEach((row, index) => {
                 const dateInput = row.querySelector('input[type="date"]');
                 const hoursInput = row.querySelector('input[type="number"]');
                 data.vacations.push({
@@ -480,18 +982,37 @@
                 const saved = localStorage.getItem('vacationCalculatorData');
                 if (saved) {
                     const data = JSON.parse(saved);
+                    document.getElementById('hireDate').value = data.hireDate || '';
                     document.getElementById('accrualGroup').value = data.accrualGroup || '3.7';
                     document.getElementById('currentBalance').value = data.currentBalance || '';
                     document.getElementById('compTime').value = data.compTime || '';
                     document.getElementById('floatingHoliday').value = data.floatingHoliday || '';
+                    document.getElementById('sickTime').value = data.sickTime || '';
                     document.getElementById('targetDate').value = data.targetDate || '';
                     
+                    // Calculate accrual group from hire date if available
+                    if (data.hireDate) {
+                        calculateAccrualGroup();
+                    }
+                    
+                    // Restore the correct number of vacation rows
+                    if (data.vacationRowCount && data.vacationRowCount > 1) {
+                        for (let i = vacationRowCount; i < data.vacationRowCount; i++) {
+                            addVacationRow();
+                        }
+                    }
+                    
                     if (data.vacations) {
-                        const rows = document.querySelectorAll('tbody tr');
+                        const rows = document.querySelectorAll('#vacationTableBody tr:nth-child(odd)');
                         data.vacations.forEach((vacation, index) => {
                             if (rows[index]) {
-                                rows[index].querySelector('input[type="date"]').value = vacation.date || '';
-                                rows[index].querySelector('input[type="number"]').value = vacation.hours || '';
+                                const dateInput = rows[index].querySelector('input[type="date"]');
+                                const hoursInput = rows[index].querySelector('input[type="number"]');
+                                dateInput.value = vacation.date || '';
+                                hoursInput.value = vacation.hours || '';
+                                if (dateInput.value) {
+                                    updateVacationHelper(dateInput, index);
+                                }
                             }
                         });
                     }
