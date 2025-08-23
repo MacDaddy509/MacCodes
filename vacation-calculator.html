@@ -3,227 +3,504 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vacation Time Calculator for Google Sheets</title>
+    <title>Vacation Time Calculator</title>
     <style>
+        * {
+            box-sizing: border-box;
+        }
         body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            max-width: 100%;
+            margin: 0;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
         }
         .calculator {
             background: white;
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .header {
+            text-align: center;
             margin-bottom: 30px;
         }
+        .header h1 {
+            margin: 0;
+            color: #4a5568;
+            font-size: 1.8rem;
+        }
         .section {
-            margin-bottom: 20px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #fafafa;
+            margin-bottom: 25px;
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            background: linear-gradient(145deg, #f8fafc, #f1f5f9);
         }
         .section h3 {
-            margin-top: 0;
-            color: #333;
+            margin: 0 0 15px 0;
+            color: #2d3748;
+            font-size: 1.2rem;
+            border-bottom: 2px solid #4299e1;
+            padding-bottom: 8px;
         }
         .input-group {
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
         }
         label {
-            display: inline-block;
-            width: 180px;
-            font-weight: bold;
-            color: #555;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 0.9rem;
         }
-        select, input {
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 14px;
+        select, input[type="number"], input[type="date"] {
+            padding: 12px;
+            border: 2px solid #cbd5e0;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            transition: border-color 0.3s ease;
+            -webkit-appearance: none;
+        }
+        select:focus, input:focus {
+            outline: none;
+            border-color: #4299e1;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+        }
+        select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 12px center;
+            background-repeat: no-repeat;
+            background-size: 16px;
+            padding-right: 40px;
         }
         .result {
-            background-color: #e8f5e8;
-            padding: 10px;
-            border-radius: 4px;
-            font-weight: bold;
-            color: #2d5a2d;
+            background: linear-gradient(145deg, #48bb78, #38a169);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-align: center;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
         }
-        .formula-guide {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .formula {
-            background-color: #f8f8f8;
-            padding: 10px;
-            border-left: 4px solid #007acc;
-            margin: 10px 0;
-            font-family: monospace;
-            font-size: 12px;
+        .vacation-table {
             overflow-x: auto;
+            margin-top: 15px;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 15px;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         th {
-            background-color: #f2f2f2;
-            font-weight: bold;
+            background: linear-gradient(145deg, #4299e1, #3182ce);
+            color: white;
+            padding: 12px 8px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        td {
+            padding: 10px 8px;
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        td input {
+            width: 100%;
+            border: 1px solid #cbd5e0;
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .balance-cell {
+            background: linear-gradient(145deg, #e6fffa, #b2f5ea);
+            font-weight: 600;
+            color: #234e52;
+        }
+        .negative {
+            background: linear-gradient(145deg, #fed7d7, #feb2b2);
+            color: #742a2a;
+        }
+        .clear-btn {
+            background: linear-gradient(145deg, #fc8181, #e53e3e);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .clear-btn:hover {
+            background: linear-gradient(145deg, #e53e3e, #c53030);
+        }
+        .total-section {
+            background: linear-gradient(145deg, #4299e1, #3182ce);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+        .total-section h3 {
+            margin: 0 0 10px 0;
+            border: none;
+            color: white;
+        }
+        .total-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .calculator {
+                padding: 15px;
+            }
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            .section {
+                padding: 15px;
+            }
+            th, td {
+                padding: 8px 4px;
+                font-size: 0.8rem;
+            }
+            td input {
+                padding: 6px;
+                font-size: 14px;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Vacation Time Calculator - Google Sheets Layout</h1>
-    
     <div class="calculator">
+        <div class="header">
+            <h1>🏖️ Vacation Time Calculator</h1>
+        </div>
+        
         <div class="section">
-            <h3>Basic Information</h3>
+            <h3>📊 Basic Information</h3>
             <div class="input-group">
-                <label>Accrual Group:</label>
-                <select>
-                    <option>First 4 years (3.7 hrs/period)</option>
-                    <option>Begin 5th - 10th (5.24 hrs/period)</option>
-                    <option>Begin 11th (5.55 hrs/period)</option>
-                    <option>Begin 12th (5.85 hrs/period)</option>
-                    <option>Begin 13th (6.16 hrs/period)</option>
-                    <option>Begin 15th - 19th (6.78 hrs/period)</option>
-                    <option>Begin 20th (8.32 hrs/period)</option>
-                    <option>Begin 25th (9 hrs/period)</option>
-                    <option>Begin 30th (9.5 hrs/period)</option>
-                    <option>Sick leave (6 hrs/period)</option>
+                <label for="accrualGroup">Accrual Group:</label>
+                <select id="accrualGroup" onchange="calculateAll()">
+                    <option value="3.7">First 4 years (3.7 hrs/period)</option>
+                    <option value="5.24">Begin 5th - 10th (5.24 hrs/period)</option>
+                    <option value="5.55">Begin 11th (5.55 hrs/period)</option>
+                    <option value="5.85">Begin 12th (5.85 hrs/period)</option>
+                    <option value="6.16">Begin 13th (6.16 hrs/period)</option>
+                    <option value="6.78">Begin 15th - 19th (6.78 hrs/period)</option>
+                    <option value="8.32">Begin 20th (8.32 hrs/period)</option>
+                    <option value="9">Begin 25th (9 hrs/period)</option>
+                    <option value="9.5">Begin 30th (9.5 hrs/period)</option>
+                    <option value="6">Sick leave (6 hrs/period)</option>
                 </select>
             </div>
             <div class="input-group">
-                <label>Current Balance:</label>
-                <input type="number" placeholder="Enter current vacation hours" step="0.01">
+                <label for="currentBalance">Current Balance (hours):</label>
+                <input type="number" id="currentBalance" placeholder="Enter current vacation hours" step="0.01" onchange="calculateAll()" oninput="calculateAll()">
             </div>
-        </div>
-
-        <div class="section">
-            <h3>Future Date Calculation</h3>
             <div class="input-group">
-                <label>Target Date:</label>
-                <input type="date">
+                <label for="compTime">Comp Time (hours):</label>
+                <input type="number" id="compTime" placeholder="Enter comp time hours" step="0.01" onchange="calculateAll()" oninput="calculateAll()">
             </div>
-            <div class="result">
-                Projected Balance: [Will be calculated automatically]
+            <div class="input-group">
+                <label for="floatingHoliday">Floating Holiday (hours):</label>
+                <input type="number" id="floatingHoliday" placeholder="Enter floating holiday hours" step="0.01" onchange="calculateAll()" oninput="calculateAll()">
             </div>
         </div>
 
         <div class="section">
-            <h3>Scheduled Vacations</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Vacation Date</th>
-                        <th>Hours to Use</th>
-                        <th>Balance Before</th>
-                        <th>Balance After</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><input type="date"></td>
-                        <td><input type="number" step="0.01" placeholder="-40"></td>
-                        <td class="result">[Auto calculated]</td>
-                        <td class="result">[Auto calculated]</td>
-                    </tr>
-                    <tr>
-                        <td><input type="date"></td>
-                        <td><input type="number" step="0.01" placeholder="-16"></td>
-                        <td class="result">[Auto calculated]</td>
-                        <td class="result">[Auto calculated]</td>
-                    </tr>
-                    <tr>
-                        <td><input type="date"></td>
-                        <td><input type="number" step="0.01" placeholder="-8"></td>
-                        <td class="result">[Auto calculated]</td>
-                        <td class="result">[Auto calculated]</td>
-                    </tr>
-                </tbody>
-            </table>
+            <h3>📅 Future Date Calculation</h3>
+            <div class="input-group">
+                <label for="targetDate">Target Date:</label>
+                <input type="date" id="targetDate" onchange="calculateAll()">
+            </div>
+            <div class="result" id="projectedBalance">
+                Enter information above to see projected balance
+            </div>
         </div>
 
         <div class="section">
-            <h3>Running Total</h3>
-            <div class="result">
-                Current Running Balance: [Auto calculated based on all entries above]
+            <h3>🏝️ Scheduled Vacations</h3>
+            <div class="vacation-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Vacation Date</th>
+                            <th>Hours to Use</th>
+                            <th>Balance Before</th>
+                            <th>Balance After</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><input type="date" onchange="calculateAll()"></td>
+                            <td><input type="number" step="0.01" placeholder="-40" onchange="calculateAll()" oninput="calculateAll()"></td>
+                            <td class="balance-cell" id="before1">-</td>
+                            <td class="balance-cell" id="after1">-</td>
+                            <td><button class="clear-btn" onclick="clearRow(0)">Clear</button></td>
+                        </tr>
+                        <tr>
+                            <td><input type="date" onchange="calculateAll()"></td>
+                            <td><input type="number" step="0.01" placeholder="-16" onchange="calculateAll()" oninput="calculateAll()"></td>
+                            <td class="balance-cell" id="before2">-</td>
+                            <td class="balance-cell" id="after2">-</td>
+                            <td><button class="clear-btn" onclick="clearRow(1)">Clear</button></td>
+                        </tr>
+                        <tr>
+                            <td><input type="date" onchange="calculateAll()"></td>
+                            <td><input type="number" step="0.01" placeholder="-8" onchange="calculateAll()" oninput="calculateAll()"></td>
+                            <td class="balance-cell" id="before3">-</td>
+                            <td class="balance-cell" id="after3">-</td>
+                            <td><button class="clear-btn" onclick="clearRow(2)">Clear</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="total-section">
+            <h3>📈 Final Running Balance</h3>
+            <div class="total-value" id="runningTotal">
+                Enter information above to calculate
             </div>
         </div>
     </div>
 
-    <div class="formula-guide">
-        <h2>Google Sheets Setup Instructions</h2>
-        
-        <h3>1. Cell Layout (suggested positions):</h3>
-        <table>
-            <tr><th>Cell</th><th>Content</th><th>Type</th></tr>
-            <tr><td>B2</td><td>Accrual Group Dropdown</td><td>Data Validation List</td></tr>
-            <tr><td>B3</td><td>Current Balance</td><td>Number Input</td></tr>
-            <tr><td>B5</td><td>Target Date</td><td>Date Input</td></tr>
-            <tr><td>B6</td><td>Projected Balance</td><td>Formula</td></tr>
-            <tr><td>A9:D12</td><td>Vacation Schedule Table</td><td>Mixed</td></tr>
-            <tr><td>B14</td><td>Running Total</td><td>Formula</td></tr>
-        </table>
+    <script>
+        // Load saved data on page load
+        window.onload = function() {
+            loadData();
+            calculateAll();
+        };
 
-        <h3>2. Data Validation for Accrual Group (Cell B2):</h3>
-        <div class="formula">
-First 4 years (3.7)
-Begin 5th - 10th (5.24)  
-Begin 11th (5.55)
-Begin 12th (5.85)
-Begin 13th (6.16)
-Begin 15th - 19th (6.78)
-Begin 20th (8.32)
-Begin 25th (9)
-Begin 30th (9.5)
-Sick leave (6)
-        </div>
+        function calculateAll() {
+            const accrualRate = parseFloat(document.getElementById('accrualGroup').value);
+            const currentBalance = parseFloat(document.getElementById('currentBalance').value) || 0;
+            const compTime = parseFloat(document.getElementById('compTime').value) || 0;
+            const floatingHoliday = parseFloat(document.getElementById('floatingHoliday').value) || 0;
+            const targetDate = document.getElementById('targetDate').value;
+            
+            // Calculate total starting balance
+            let totalBalance = currentBalance;
+            let balanceDisplay = currentBalance.toFixed(2);
+            
+            if (compTime > 0) {
+                totalBalance += compTime;
+                balanceDisplay += ` (+${compTime.toFixed(2)}c)`;
+            }
+            if (floatingHoliday > 0) {
+                totalBalance += floatingHoliday;
+                balanceDisplay += ` (+${floatingHoliday.toFixed(2)}fh)`;
+            }
+            
+            // Calculate projected balance for target date
+            if (targetDate) {
+                const today = new Date();
+                const target = new Date(targetDate);
+                const daysDiff = (target - today) / (1000 * 60 * 60 * 24);
+                const payPeriods = Math.floor(Math.abs(daysDiff) / 14);
+                
+                let projectedBalance, accruedHours;
+                if (daysDiff >= 0) {
+                    // Future date
+                    accruedHours = payPeriods * accrualRate;
+                    projectedBalance = totalBalance + accruedHours;
+                    document.getElementById('projectedBalance').innerHTML = 
+                        `Projected Balance: <strong>${projectedBalance.toFixed(2)} hours</strong><br>
+                         <small>Base: ${balanceDisplay} + (${payPeriods} periods × ${accrualRate} hrs = +${accruedHours.toFixed(2)} hrs)</small>`;
+                } else {
+                    // Past date
+                    accruedHours = -(payPeriods * accrualRate);
+                    projectedBalance = totalBalance + accruedHours;
+                    document.getElementById('projectedBalance').innerHTML = 
+                        `Balance on ${targetDate}: <strong>${projectedBalance.toFixed(2)} hours</strong><br>
+                         <small>Base: ${balanceDisplay} - (${payPeriods} periods × ${accrualRate} hrs = ${accruedHours.toFixed(2)} hrs)</small>`;
+                }
+            }
 
-        <h3>3. Key Formulas:</h3>
-        
-        <p><strong>Accrual Rate Lookup (helper cell, e.g., B4):</strong></p>
-        <div class="formula">=IF(B2="First 4 years (3.7)",3.7,IF(B2="Begin 5th - 10th (5.24)",5.24,IF(B2="Begin 11th (5.55)",5.55,IF(B2="Begin 12th (5.85)",5.85,IF(B2="Begin 13th (6.16)",6.16,IF(B2="Begin 15th - 19th (6.78)",6.78,IF(B2="Begin 20th (8.32)",8.32,IF(B2="Begin 25th (9)",9,IF(B2="Begin 30th (9.5)",9.5,IF(B2="Sick leave (6)",6,0))))))))))</div>
+            // Calculate vacation balances
+            const vacationRows = document.querySelectorAll('tbody tr');
+            
+            // Get all vacation entries and sort by date
+            let vacations = [];
+            vacationRows.forEach((row, index) => {
+                const dateInput = row.querySelector('input[type="date"]');
+                const hoursInput = row.querySelector('input[type="number"]');
+                
+                if (dateInput.value) {
+                    vacations.push({
+                        index: index,
+                        date: new Date(dateInput.value),
+                        hours: parseFloat(hoursInput.value) || 0,
+                        row: row
+                    });
+                }
+            });
+            
+            // Sort vacations by date
+            vacations.sort((a, b) => a.date - b.date);
+            
+            // Calculate balances for each vacation sequentially
+            let cumulativeBalance = totalBalance; // Start with total balance including comp/fh
+            const today = new Date();
+            
+            vacations.forEach((vacation, vacIndex) => {
+                const daysDiff = (vacation.date - today) / (1000 * 60 * 60 * 24);
+                const payPeriods = Math.floor(Math.abs(daysDiff) / 14);
+                
+                // Calculate accrual from today (or last vacation date) to this vacation
+                let accruedHours;
+                if (vacIndex === 0) {
+                    // First vacation - calculate from today
+                    if (daysDiff >= 0) {
+                        accruedHours = payPeriods * accrualRate;
+                    } else {
+                        accruedHours = -(payPeriods * accrualRate);
+                    }
+                    cumulativeBalance = totalBalance + accruedHours;
+                } else {
+                    // Subsequent vacations - calculate from previous vacation date
+                    const prevVacation = vacations[vacIndex - 1];
+                    const daysBetween = (vacation.date - prevVacation.date) / (1000 * 60 * 60 * 24);
+                    const periodsBetween = Math.floor(Math.abs(daysBetween) / 14);
+                    
+                    if (daysBetween >= 0) {
+                        accruedHours = periodsBetween * accrualRate;
+                        cumulativeBalance += accruedHours;
+                    } else {
+                        accruedHours = -(periodsBetween * accrualRate);
+                        cumulativeBalance += accruedHours;
+                    }
+                }
+                
+                const balanceAfter = cumulativeBalance + vacation.hours; // hours should be negative for usage
+                
+                const beforeCell = document.getElementById(`before${vacation.index + 1}`);
+                const afterCell = document.getElementById(`after${vacation.index + 1}`);
+                
+                if (beforeCell && afterCell) {
+                    beforeCell.textContent = cumulativeBalance.toFixed(2);
+                    afterCell.textContent = balanceAfter.toFixed(2);
+                    
+                    // Color coding
+                    beforeCell.className = cumulativeBalance < 0 ? 'balance-cell negative' : 'balance-cell';
+                    afterCell.className = balanceAfter < 0 ? 'balance-cell negative' : 'balance-cell';
+                }
+                
+                // Update cumulative balance for next iteration
+                cumulativeBalance = balanceAfter;
+            });
+            
+            // Clear unused rows
+            vacationRows.forEach((row, index) => {
+                const dateInput = row.querySelector('input[type="date"]');
+                const hoursInput = row.querySelector('input[type="number"]');
+                
+                if (!dateInput.value) {
+                    const beforeCell = document.getElementById(`before${index + 1}`);
+                    const afterCell = document.getElementById(`after${index + 1}`);
+                    if (beforeCell && afterCell) {
+                        beforeCell.textContent = '-';
+                        afterCell.textContent = '-';
+                        beforeCell.className = 'balance-cell';
+                        afterCell.className = 'balance-cell';
+                    }
+                }
+            });
 
-        <p><strong>Pay Periods Between Dates (helper cell, e.g., B7):</strong></p>
-        <div class="formula">=ROUNDDOWN((B5-TODAY())/14,0)</div>
+            // Calculate final running total
+            if (vacations.length > 0) {
+                // Use the final cumulative balance from the last vacation
+                document.getElementById('runningTotal').textContent = `${cumulativeBalance.toFixed(2)} hours`;
+            } else if (targetDate) {
+                const projectedText = document.getElementById('projectedBalance').textContent;
+                const match = projectedText.match(/([\d.-]+) hours/);
+                if (match) {
+                    document.getElementById('runningTotal').textContent = `${parseFloat(match[1]).toFixed(2)} hours`;
+                }
+            } else {
+                document.getElementById('runningTotal').textContent = `${totalBalance.toFixed(2)} hours`;
+            }
+            
+            // Save data
+            saveData();
+        }
 
-        <p><strong>Projected Balance (B6):</strong></p>
-        <div class="formula">=B3+(B4*B7)</div>
+        function clearRow(rowIndex) {
+            const row = document.querySelectorAll('tbody tr')[rowIndex];
+            row.querySelector('input[type="date"]').value = '';
+            row.querySelector('input[type="number"]').value = '';
+            calculateAll();
+        }
 
-        <p><strong>Balance Before Vacation (C10, C11, C12):</strong></p>
-        <div class="formula">=B3+(B4*ROUNDDOWN((A10-TODAY())/14,0))</div>
+        function saveData() {
+            const data = {
+                accrualGroup: document.getElementById('accrualGroup').value,
+                currentBalance: document.getElementById('currentBalance').value,
+                compTime: document.getElementById('compTime').value,
+                floatingHoliday: document.getElementById('floatingHoliday').value,
+                targetDate: document.getElementById('targetDate').value,
+                vacations: []
+            };
+            
+            document.querySelectorAll('tbody tr').forEach(row => {
+                const dateInput = row.querySelector('input[type="date"]');
+                const hoursInput = row.querySelector('input[type="number"]');
+                data.vacations.push({
+                    date: dateInput.value,
+                    hours: hoursInput.value
+                });
+            });
+            
+            try {
+                localStorage.setItem('vacationCalculatorData', JSON.stringify(data));
+            } catch (e) {
+                // Handle storage errors gracefully
+                console.log('Could not save data to local storage');
+            }
+        }
 
-        <p><strong>Balance After Vacation (D10, D11, D12):</strong></p>
-        <div class="formula">=C10+B10</div>
-
-        <p><strong>Running Total (B14):</strong></p>
-        <div class="formula">=B3+SUM(B10:B12)+(B4*ROUNDDOWN((MAX(A10:A12)-TODAY())/14,0))</div>
-
-        <h3>4. Setup Steps:</h3>
-        <ol>
-            <li>Create the layout as shown above</li>
-            <li>Set up data validation for cell B2 with the accrual group list</li>
-            <li>Add the accrual rate lookup formula in B4</li>
-            <li>Add the pay period calculation in B7</li>
-            <li>Add the projected balance formula in B6</li>
-            <li>Create the vacation table with date inputs in A10:A12 and hour inputs in B10:B12</li>
-            <li>Add balance calculation formulas in C10:C12 and D10:D12</li>
-            <li>Add the running total formula in B14</li>
-        </ol>
-
-        <p><strong>Note:</strong> These formulas assume bi-weekly pay periods (14 days) and calculate from TODAY(). Adjust the pay period interval if needed.</p>
-    </div>
+        function loadData() {
+            try {
+                const saved = localStorage.getItem('vacationCalculatorData');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    document.getElementById('accrualGroup').value = data.accrualGroup || '3.7';
+                    document.getElementById('currentBalance').value = data.currentBalance || '';
+                    document.getElementById('compTime').value = data.compTime || '';
+                    document.getElementById('floatingHoliday').value = data.floatingHoliday || '';
+                    document.getElementById('targetDate').value = data.targetDate || '';
+                    
+                    if (data.vacations) {
+                        const rows = document.querySelectorAll('tbody tr');
+                        data.vacations.forEach((vacation, index) => {
+                            if (rows[index]) {
+                                rows[index].querySelector('input[type="date"]').value = vacation.date || '';
+                                rows[index].querySelector('input[type="number"]').value = vacation.hours || '';
+                            }
+                        });
+                    }
+                }
+            } catch (e) {
+                // Handle loading errors gracefully
+                console.log('Could not load saved data');
+            }
+        }
+    </script>
 </body>
 </html>
