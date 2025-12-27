@@ -272,7 +272,8 @@ def capture_url_screenshot(url):
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
             page = browser.new_page(viewport={'width': 1280, 'height': 720})
-            page.goto(url, wait_until='domcontentloaded', timeout=10000)
+            page.goto(url, wait_until='networkidle', timeout=30000)  # Changed these
+            page.wait_for_timeout(1000)  # Extra wait for rendering
             page.screenshot(path=cache_path)
             browser.close()
         
