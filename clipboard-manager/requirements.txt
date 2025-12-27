@@ -1,0 +1,9 @@
+pyperclip==1.9.0
+pystray==0.19.5
+Pillow==11.0.0
+keyboard==0.13.5
+playwright==1.49.1
+pywin32==308
+pytesseract==0.3.13
+requests==2.32.3
+beautifulsoup4==4.12.3
