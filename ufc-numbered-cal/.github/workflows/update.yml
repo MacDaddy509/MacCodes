@@ -1,0 +1,46 @@
+name: Update UFC Numbered Calendar
+
+on:
+  schedule:
+    - cron: "0 6 * * *"   # runs daily at 6 AM UTC
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Download upstream UFC calendar
+        run: curl -L https://raw.githubusercontent.com/clarencechaan/ufc-cal/ics/UFC.ics -o UFC.ics
+
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+
+      - name: Filter numbered events
+        run: python filter.py
+
+      - name: Upload artifact for Pages
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: .
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
